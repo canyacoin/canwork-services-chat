@@ -5,8 +5,7 @@ triggers:
   - '**/*.go'
   env:
     DEBUG: "1"
-    FIREBASE_SERVICE_FILE: "~/Documents/firebasekey.json"
-  cmd: dev_appserver.py app.yaml --port=1883 
+  cmd: dev_appserver.py app.yaml --support_datastore_emulator=True --port=1883 --env_var CANWORK_FIREBASE_SERVICE_FILE=$CANWORK_FIREBASE_SERVICE_FILE --env_var CANYA_SENDGRID_API_KEY=$CANYA_SENDGRID_API_KEY 
   shell: true
   delay: 100ms
   stop_timeout: 500ms

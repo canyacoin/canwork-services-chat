@@ -13,16 +13,23 @@ import (
 var (
 	ctx                 context.Context
 	firebaseServiceFile string
+	sendgridAPIKey      string
 )
 
 const (
-	firestoreAccountFile = "/home/alex/Documents/firebasekey.json"
-	firestoreProjectID   = "staging-can-work"
+	firestoreProjectID = "staging-can-work"
 )
 
 // Init function gets run automatically
 func init() {
-	firebaseServiceFile = getEnv("FIREBASE_SERVICE_FILE", "")
+	firebaseServiceFile = getEnv("CANWORK_FIREBASE_SERVICE_FILE", "")
+	if firebaseServiceFile == "" {
+		panic(fmt.Sprintf("unable to find required environment variable: CANWORK_FIREBASE_SERVICE_FILE"))
+	}
+	sendgridAPIKey = getEnv("CANYA_SENDGRID_API_KEY", "")
+	if sendgridAPIKey == "" {
+		panic(fmt.Sprintf("unable to find required environment variable: CANYA_SENDGRID_API_KEY"))
+	}
 }
 
 func main() {

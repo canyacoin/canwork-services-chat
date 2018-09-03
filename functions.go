@@ -17,7 +17,7 @@ func getEnv(key, fallback string) string {
 }
 
 func getNewFirestoreClient(ctx context.Context) (*firestore.Client, error) {
-	return firestore.NewClient(ctx, firestoreProjectID, option.WithServiceAccountFile(firestoreAccountFile))
+	return firestore.NewClient(ctx, firestoreProjectID, option.WithServiceAccountFile(firebaseServiceFile))
 }
 
 func writeLogIfError(ctx context.Context, err error) {

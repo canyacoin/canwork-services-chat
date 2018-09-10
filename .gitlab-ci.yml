@@ -1,0 +1,34 @@
+image: registry.gitlab.com/canya-com/gae-golang-build-container:0.4
+
+variables:
+  GOPATH: /go
+  APP_PATH: $GOPATH/src/gitlab.com/$CI_PROJECT_PATH
+
+before_script:
+  - echo "+ perfoming build on alpine '`cat /etc/alpine-release`' with '`go version`'" 
+  - echo "+ relocating cloned sources to $APP_PATH to satisfy go's package tree structure"
+  - mkdir -p `dirname $APP_PATH`
+  - mv /builds/$CI_PROJECT_PATH $APP_PATH
+  - mkdir -p /builds/$CI_PROJECT_PATH
+  - export GOPATH=$GOPATH
+  - cd $APP_PATH 
+
+after_script:
+  - rm /tmp/$CI_PIPELINE_ID.json
+
+stages:
+  - deploy
+  
+deploy:
+  stage: deploy
+  environment: Staging
+  only:
+    - master
+  script:
+    - echo -n "+ current working path:" && pwd
+    - echo $GAE_KEY_STAGING > /tmp/$CI_PIPELINE_ID.json
+    - echo $APP_YAML > ./app.yaml
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud config set project $GCP_PROJECT_ID_STAGING
+    - go get
+    - gcloud --quiet app deploy

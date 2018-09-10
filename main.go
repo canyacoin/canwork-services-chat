@@ -14,10 +14,12 @@ var (
 	ctx                 context.Context
 	firebaseServiceFile string
 	sendgridAPIKey      string
+	logger              *log
 )
 
 const (
-	firestoreProjectID = "staging-can-work"
+	gcpProjectID = "staging-can-work"
+	appID        = "canwork-api-chat-notification"
 )
 
 // Init function gets run automatically
@@ -38,23 +40,27 @@ func main() {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	var err error
-	ctx := appengine.NewContext(r)
+	// var err error
 
-	client, err := getNewFirestoreClient(ctx)
-	writeLogIfError(ctx, err)
-	defer client.Close()
+	// logger.("logggggg")
+	// Creates a client.
 
-	myID := "GW0A2f0pTOc559hfCT0sQqa1kgE3"
+	// client, err := getNewFirestoreClient(ctx)
+	// writeLogIfError(ctx, err)
+	// defer client.Close()
 
-	psi := client.Collection(fmt.Sprintf("who/%s/user", myID)).Documents(ctx)
+	// myID := "GW0A2f0pTOc559hfCT0sQqa1kgE3"
 
-	for {
-		x, err := psi.Next()
-		if err != nil {
-			break
-		}
-		fmt.Fprintln(w, fmt.Sprintf("%+v", x.Data()))
-	}
+	// psi := client.Collection(fmt.Sprintf("who/%s/user", myID)).Documents(ctx)
+
+	// for {
+	// 	x, err := psi.Next()
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	fmt.Fprintln(w, fmt.Sprintf("%+v", x.Data()))
+	// }
+
+	sendEmail()
 
 }

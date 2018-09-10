@@ -28,7 +28,6 @@ deploy:
     - echo -n "+ current working path:" && pwd
     - echo $GAE_KEY_STAGING > /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
-    - cat ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID_STAGING
     - go get

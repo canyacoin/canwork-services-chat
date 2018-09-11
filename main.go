@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
+	"cloud.google.com/go/firestore"
 	sendgrid "github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"google.golang.org/appengine"
@@ -14,9 +16,10 @@ import (
 // Globals:
 
 var (
-	// firebaseServiceFile string
-	sendgridAPIKey     string
-	sendgridTemplateID string
+	ctx                 context.Context
+	firebaseServiceFile string
+	sendgridAPIKey      string
+	sendgridTemplateID  string
 )
 
 const (
@@ -27,10 +30,10 @@ const (
 // Init function gets run automatically
 func init() {
 
-	// firebaseServiceFile = getEnv("CANWORK_FIREBASE_SERVICE_FILE", "")
-	// if firebaseServiceFile == "" {
-	// 	panic(fmt.Sprintf("unable to find required environment variable: CANWORK_FIREBASE_SERVICE_FILE"))
-	// }
+	firebaseServiceFile = getEnv("CANWORK_FIREBASE_SERVICE_FILE", "")
+	if firebaseServiceFile == "" {
+		panic(fmt.Sprintf("unable to find required environment variable: CANWORK_FIREBASE_SERVICE_FILE"))
+	}
 
 	sendgridAPIKey = getEnv("CANYA_SENDGRID_API_KEY", "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")
 	if sendgridAPIKey == "" {
@@ -52,6 +55,41 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 
 	sendgrid.DefaultClient.HTTPClient = urlfetch.Client(ctx)
 
+	client, err := getNewFirestoreClient(ctx)
+	writeLogIfError(ctx, err)
+	defer client.Close()
+
+	psi := client.Collection("notifications").Where("chat", "==", true).Documents(ctx)
+
+	for {
+		x, err := psi.Next()
+		if err != nil {
+			break
+		}
+		userID := x.Ref.ID
+		log.Infof(ctx, "getting user from firestore: %s", userID)
+		docsnap, err := client.Doc(fmt.Sprintf("users/%s", userID)).Get(ctx)
+		if err != nil {
+			log.Errorf(ctx, "failed to retrieve user %s: %s", userID, err.Error())
+		} else {
+			var user User
+			if err := docsnap.DataTo(&user); err != nil {
+				log.Errorf(ctx, "failed parsing user %s: %s", userID, err.Error())
+			} else {
+				log.Infof(ctx, "Got user to notify: %+s", user)
+				sent := sendEmail(w, user.Name, user.Email)
+				if sent {
+					_, err := client.Doc(fmt.Sprintf("notifications/%s", userID)).Update(ctx, []firestore.Update{{Path: "chat", Value: false}})
+					if err != nil {
+						log.Errorf(ctx, "Error setting flag on notifications: %s", userID)
+					}
+				}
+			}
+		}
+	}
+}
+
+func sendEmail(w http.ResponseWriter, name string, email string) bool {
 	/*
 	 * Send a test email with the templateID
 	 * Taken from: https://github.com/sendgrid/sendgrid-go/blob/master/USE_CASES.md#transactional-templates
@@ -59,9 +97,9 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 
 	m := mail.NewV3Mail()
 
-	address := "alex@canya.com"
-	name := "Big Boi"
-	e := mail.NewEmail(name, address)
+	senderAddress := "support@canya.com"
+	senderName := "CanYa support"
+	e := mail.NewEmail(senderName, senderAddress)
 	m.SetFrom(e)
 
 	m.SetTemplateID(sendgridTemplateID)
@@ -69,13 +107,13 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	p := mail.NewPersonalization()
 	tos := []*mail.Email{
 		mail.NewEmail("Cam", "cam@canya.com"),
-		mail.NewEmail("Alex", "alex@canya.com"),
+		mail.NewEmail(name, email),
 	}
 	p.AddTos(tos...)
 
-	p.SetDynamicTemplateData("subject", "Subject")
-	p.SetDynamicTemplateData("title", "Test from GAE Standard Golang")
-	p.SetDynamicTemplateData("body", "sdfsdfsd")
+	p.SetDynamicTemplateData("subject", "You have unread chat messages")
+	p.SetDynamicTemplateData("title", "You have unread chat messages on CanWork")
+	p.SetDynamicTemplateData("body", "People on CanWork are waiting for your response!")
 	p.SetDynamicTemplateData("returnLinkText", "Visit CANWork")
 	p.SetDynamicTemplateData("returnLinkUrl", "https://canwork.io")
 
@@ -89,32 +127,12 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf(ctx, "failed to hit sendgrid API: %s", err.Error())
 		fmt.Fprintln(w, fmt.Sprintf("email not sent: %s", err.Error()))
+		return false
 	} else {
 		log.Debugf(ctx, "API response status code: %d", response.StatusCode)
 		log.Debugf(ctx, "API response body: %s", response.Body)
 		log.Debugf(ctx, "API response headers: %+v", response.Headers)
 		fmt.Fprintln(w, fmt.Sprintf("email sent with sendgrid response body: %s", response.Body))
+		return true
 	}
-
-	// var err error
-
-	// logger.("logggggg")
-	// Creates a client.
-
-	// client, err := getNewFirestoreClient(ctx)
-	// writeLogIfError(ctx, err)
-	// defer client.Close()
-
-	// myID := "GW0A2f0pTOc559hfCT0sQqa1kgE3"
-
-	// psi := client.Collection(fmt.Sprintf("who/%s/user", myID)).Documents(ctx)
-
-	// for {
-	// 	x, err := psi.Next()
-	// 	if err != nil {
-	// 		break
-	// 	}
-	// 	fmt.Fprintln(w, fmt.Sprintf("%+v", x.Data()))
-	// }
-
 }

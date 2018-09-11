@@ -1,6 +1,13 @@
 package main
 
-import "os"
+import (
+	"context"
+	"os"
+
+	"cloud.google.com/go/firestore"
+	"google.golang.org/api/option"
+	"google.golang.org/appengine/log"
+)
 
 // import (
 // 	"context"
@@ -21,15 +28,15 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-// func getNewFirestoreClient(ctx context.Context) (*firestore.Client, error) {
-// 	return firestore.NewClient(ctx, gcpProjectID, option.WithServiceAccountFile(firebaseServiceFile))
-// }
+func getNewFirestoreClient(ctx context.Context) (*firestore.Client, error) {
+	return firestore.NewClient(ctx, gcpProjectID, option.WithServiceAccountFile(firebaseServiceFile))
+}
 
-// func writeLogIfError(ctx context.Context, err error) {
-// 	if err != nil {
-// 		log.Errorf(ctx, "Err: %s", err.Error())
-// 	}
-// }
+func writeLogIfError(ctx context.Context, err error) {
+	if err != nil {
+		log.Errorf(ctx, "Err: %s", err.Error())
+	}
+}
 
 // func sendEmail() {
 // 	from := mail.NewEmail("Example User", "valthrex@gmail.com")

@@ -32,3 +32,4 @@ deploy:
     - gcloud config set project $GCP_PROJECT_ID_STAGING
     - go get
     - gcloud --quiet app deploy
+    - gcloud app deploy cron.yaml

@@ -30,6 +30,7 @@ deploy_staging:
     - gcloud config set project $GCP_PROJECT_ID
     - go get
     - gcloud --quiet app deploy
+    - gcloud app deploy cron.yaml
   environment:
     name: staging
   only:

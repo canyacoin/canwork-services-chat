@@ -25,6 +25,7 @@ deploy_staging:
     - echo "Deploy to staging server"
     - echo -n "+ current working path:" && pwd
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
+    - echo -n "+ using GCP KEY for staging deployer: " && cat /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID
@@ -40,8 +41,9 @@ deploy_prod:
   stage: deploy
   script:
     - echo "Deploy to production server"
-      - echo -n "+ current working path:" && pwd
+    - echo -n "+ current working path:" && pwd
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
+    - echo -n "+ using GCP KEY for prod deployer: " && cat /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID

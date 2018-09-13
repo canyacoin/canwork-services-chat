@@ -1,5 +1,5 @@
 cron:
 - description: "daily email notifications"
   url: /
-  schedule: every day 12:00
+  schedule: every 5 minutes
   timezone: Australia/NSW

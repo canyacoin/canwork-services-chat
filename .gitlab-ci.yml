@@ -8,6 +8,11 @@ variables:
   GOPATH: /go
   APP_PATH: $GOPATH/src/gitlab.com/$CI_PROJECT_PATH
 
+cache:
+  paths:
+    - $APP_PATH
+    - $GOPATH
+
 before_script:
   - echo "+ perfoming build on alpine '`cat /etc/alpine-release`' with '`go version`'" 
   - echo "+ relocating cloned sources to $APP_PATH to satisfy go's package tree structure"

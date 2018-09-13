@@ -12,7 +12,9 @@ build:
   stage: build
   artifacts:
     paths:
-      - $GOPATH/
+      - $GOPATH
+  cache:
+    paths: $GOPATH
   script:
     - echo "+ perfoming build on alpine '`cat /etc/alpine-release`' with '`go version`'" 
     - echo "+ relocating cloned sources to $APP_PATH to satisfy go's package tree structure"

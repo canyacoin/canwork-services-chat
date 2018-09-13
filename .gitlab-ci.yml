@@ -1,8 +1,8 @@
 image: registry.gitlab.com/canya-com/gae-golang-build-container:0.4
 
 stages:
-- build
-- deploy
+  - build
+  - deploy
 
 variables:
   GOPATH: /go
@@ -24,9 +24,6 @@ build:
   stage: build
   script:
     - go get
-
-stages:
-  - deploy
 
 deploy:staging:
   stage: deploy

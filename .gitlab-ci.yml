@@ -8,10 +8,6 @@ variables:
   GOPATH: /go
   APP_PATH: $GOPATH/src/gitlab.com/$CI_PROJECT_PATH
 
-cache:
-  paths: 
-    - $GOPATH
-
 build:
   stage: build
   script:
@@ -24,10 +20,16 @@ build:
     - cd $APP_PATH 
     - go get
 
+  cache:
+    key: build-cache
+    paths: /go
+
 deploy:staging:
   stage: deploy
   environment:
     name: staging
+  cache:
+    key: build-cache
   script:
     - echo "Deploy to staging target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
@@ -45,6 +47,8 @@ deploy:production:
   stage: deploy
   environment:
     name: production
+  cache:
+    key: build-cache
   script:
     - echo "Deploy to production target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json

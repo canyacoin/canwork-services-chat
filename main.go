@@ -16,33 +16,26 @@ import (
 // Globals:
 
 var (
+	gcpProjectID        string
 	firebaseServiceFile string
 	sendgridAPIKey      string
 	sendgridTemplateID  string
 )
 
 const (
-	gcpProjectID = "staging-can-work"
-	appID        = "canwork-api-chat-notification"
+	appID = "canwork-api-chat-notification"
 )
 
 // Init function gets run automatically
 func init() {
-
-	firebaseServiceFile = getEnv("CANWORK_FIREBASE_SERVICE_FILE", "")
-	if firebaseServiceFile == "" {
-		panic(fmt.Sprintf("unable to find required environment variable: CANWORK_FIREBASE_SERVICE_FILE"))
+	if appengine.IsDevAppServer() {
+		firebaseServiceFile = getEnv("CANWORK_FIREBASE_SERVICE_FILE", "")
+		gcpProjectID = getEnv("GCP_PROJECT_ID", "")
 	}
-
 	sendgridAPIKey = getEnv("CANYA_SENDGRID_API_KEY", "")
-	if sendgridAPIKey == "" {
-		panic(fmt.Sprintf("unable to find required environment variable: CANYA_SENDGRID_API_KEY"))
-	}
-
 	sendgridTemplateID = getEnv("CANYA_SENDGRID_TEMPLATE_ID", "d-bd1327c67b294710aa2b5dcdfe0da944")
 
 	http.HandleFunc("/", handleRoot)
-
 }
 
 func main() {

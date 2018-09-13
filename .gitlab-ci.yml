@@ -18,18 +18,37 @@ after_script:
 
 stages:
   - deploy
-  
-deploy:
+
+deploy_staging:
   stage: deploy
-  environment: Staging
-  only:
-    - master
   script:
+    - echo "Deploy to staging server"
     - echo -n "+ current working path:" && pwd
-    - echo $GAE_KEY_STAGING > /tmp/$CI_PIPELINE_ID.json
+    - echo $GAE_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
-    - gcloud config set project $GCP_PROJECT_ID_STAGING
+    - gcloud config set project $GCP_PROJECT_ID
+    - go get
+    - gcloud --quiet app deploy
+  environment:
+    name: staging
+  only:
+  - master
+
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "Deploy to production server"
+      - echo -n "+ current working path:" && pwd
+    - echo $GAE_KEY > /tmp/$CI_PIPELINE_ID.json
+    - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud config set project $GCP_PROJECT_ID
     - go get
     - gcloud --quiet app deploy
     - gcloud app deploy cron.yaml
+  environment:
+    name: production
+  when: manual
+  only:
+  - master

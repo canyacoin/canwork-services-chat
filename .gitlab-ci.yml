@@ -22,7 +22,8 @@ build:
 
   cache:
     key: build-cache
-    paths: /go
+    paths: 
+      - /go
 
 deploy:staging:
   stage: deploy
@@ -31,6 +32,7 @@ deploy:staging:
   cache:
     key: build-cache
   script:
+    - cd $APP_PATH
     - echo "Deploy to staging target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo -n "+ using GCP KEY for staging deployer " && cat /tmp/$CI_PIPELINE_ID.json
@@ -50,6 +52,7 @@ deploy:production:
   cache:
     key: build-cache
   script:
+    - cd $APP_PATH
     - echo "Deploy to production target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo -n "+ using GCP KEY for prod deployer " && cat /tmp/$CI_PIPELINE_ID.json

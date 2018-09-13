@@ -8,26 +8,20 @@ variables:
   GOPATH: /go
   APP_PATH: $GOPATH/src/gitlab.com/$CI_PROJECT_PATH
 
-cache:
-  paths:
-    - $APP_PATH
-    - $GOPATH
-
-before_script:
-  - echo "+ perfoming build on alpine '`cat /etc/alpine-release`' with '`go version`'" 
-  - echo "+ relocating cloned sources to $APP_PATH to satisfy go's package tree structure"
-  - mkdir -p `dirname $APP_PATH`
-  - mv /builds/$CI_PROJECT_PATH $APP_PATH
-  - mkdir -p /builds/$CI_PROJECT_PATH
-  - export GOPATH=$GOPATH
-  - cd $APP_PATH 
-
-after_script:
-  - rm /tmp/$CI_PIPELINE_ID.json
-
 build:
   stage: build
+  artifacts:
+    paths:
+      - $APP_PATH
+      - $GOPATH
   script:
+    - echo "+ perfoming build on alpine '`cat /etc/alpine-release`' with '`go version`'" 
+    - echo "+ relocating cloned sources to $APP_PATH to satisfy go's package tree structure"
+    - mkdir -p `dirname $APP_PATH`
+    - mv /builds/$CI_PROJECT_PATH $APP_PATH
+    - mkdir -p /builds/$CI_PROJECT_PATH
+    - export GOPATH=$GOPATH
+    - cd $APP_PATH 
     - go get
 
 deploy:staging:
@@ -58,7 +52,6 @@ deploy:production:
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID
-    - go get
     - gcloud --quiet app deploy
     - gcloud app deploy cron.yaml
   when: manual

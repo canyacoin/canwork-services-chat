@@ -1,5 +1,9 @@
 image: registry.gitlab.com/canya-com/gae-golang-build-container:0.4
 
+stages:
+- build
+- deploy
+
 variables:
   GOPATH: /go
   APP_PATH: $GOPATH/src/gitlab.com/$CI_PROJECT_PATH
@@ -16,32 +20,37 @@ before_script:
 after_script:
   - rm /tmp/$CI_PIPELINE_ID.json
 
+build:
+  stage: build
+  script:
+    - go get
+
 stages:
   - deploy
 
-deploy_staging:
+deploy:staging:
   stage: deploy
+  environment:
+    name: staging
   script:
-    - echo "Deploy to staging server"
-    - echo -n "+ current working path:" && pwd
+    - echo "Deploy to staging target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo -n "+ using GCP KEY for staging deployer " && cat /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID
-    - go get
     - gcloud --quiet app deploy
     - gcloud app deploy cron.yaml
-  environment:
-    name: staging
   only:
-  - master
+    - master
+  allow_failure: false
 
-deploy_prod:
+deploy:production:
   stage: deploy
+  environment:
+    name: production
   script:
-    - echo "Deploy to production server"
-    - echo -n "+ current working path:" && pwd
+    - echo "Deploy to production target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo -n "+ using GCP KEY for prod deployer " && cat /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
@@ -50,8 +59,7 @@ deploy_prod:
     - go get
     - gcloud --quiet app deploy
     - gcloud app deploy cron.yaml
-  environment:
-    name: production
   when: manual
+  allow_failure: false
   only:
   - master

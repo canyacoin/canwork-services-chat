@@ -1,5 +1,6 @@
 cron:
 - description: "daily email notifications"
   url: /
+  target: chat-notification
   schedule: every 5 minutes
   timezone: Australia/NSW

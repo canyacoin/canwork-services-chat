@@ -2,4 +2,4 @@ cron:
 - description: "daily email notifications"
   url: /
   schedule: every day 12:00
-  timezone: Australia/VIC
+  timezone: Australia/NSW

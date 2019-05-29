@@ -1,4 +1,4 @@
-image: registry.gitlab.com/canya-com/gae-golang-build-container:0.4
+image: registry.gitlab.com/canyacoin/canyacore/gae-golang-build-container:0.4
 
 stages:
   - deploy
